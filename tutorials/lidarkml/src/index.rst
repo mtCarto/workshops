@@ -44,9 +44,13 @@ Install the following software:
 * `OpenGeo Suite 4`_
   
   * Ubuntu users: Ensure that the `postgresql-9.3-pointcloud` extension for PostgreSQL and `pdal` LIDAR tools are installed, they may not be automatically installed with the `opengeo` package.
-  * RHEL/Centos users: Ensure that the `pointcloud-postgresql93` extension for PostgreSQL and `pdal` LIDAR tools are installed, they may not be automatically installed with the `opengeo` package.
-  * All users: Check that you can run the command-line `pdal` and `shp2pgsql` programs.
-  * **Windows users**: As of November 2013, Suite 4 does not include the `pdal` tools, which will make this tutorial hard to complete. The next minor release of the Suite for Windows should include `pdal`.
+  * RHEL/Centos users: Ensure that the `pointcloud-postgresql93` extension for PostgreSQL and `pdal` LIDAR tools are installed, they may not be automatically insta1lled with the `opengeo` package.
+  * All users: Check that you can run the command-line `pdal` and `shp2pgsql` programs::
+
+    pdal info --version
+    shp2pgsql
+
+  * **Windows users**: As of December 2015, Suite 4.8 does not include the `pdal` tools, which will make this tutorial hard to complete. The next release of the Suite for Windows & Mac should include `pdal`.
   
 * `Google Earth <http://earth.google.com>`_
 
@@ -66,7 +70,7 @@ LIDAR
 
 Thanks to open data initiatives, both LIDAR data and vector data are not hard to come by. This workshop uses data from the State of Oregon.
 
-For LIDAR data, we'll use a survey `conducted by the Oregon Department of Geology in 2009 <http://catalog.data.gov/dataset/2009-oregon-department-of-geology-and-mineral-industries-dogami-lidar-medfordc9f32>`_ and stored by NOAA. It covers a large area of Jackson County, including the City of Medford.
+For LIDAR data, we'll use a survey `conducted by the Oregon Department of Geology in 2009 <http://catalog.data.gov/dataset/2009-oregon-department-of-geology-and-mineral-industries-dogami-lidar-medford>`_ and stored by NOAA. It covers a large area of Jackson County, including the City of Medford.
 
 .. image:: ./img/oregon.jpg
    :width: 98%
@@ -76,14 +80,14 @@ The data is collected into individual "LASZIP" files, of about 70MB in size each
 .. image:: ./img/lidar_area.jpg
    :width: 98%
 
-The `NOAA data directory <http://www.csc.noaa.gov/htdata/lidar1_z/geoid12a/data/1171/>`_ includes all the files as well as a shape file that provides a spatial index of where each file is.
+Search the `NOAA data registry <https://coast.noaa.gov/dataregistry/search/collection>`_ for Medford - Coastal Topographic (click Download -> Data File(s)) dataset which includes all the files as well as a shape file that provides a spatial index of where each file is.
 
-The file we are going to use covers both a residential and commercial area of Medford.
+ **Download** LIDAR file `20090429_42122c8225_ld_p23.laz <http://www.csc.noaa.gov/htdata/lidar1_z/geoid12a/data/1171/20090429_42122c8225_ld_p23.laz>`_ now. This file covers both a residential and commercial area of Medford.
 
 .. image:: ./img/lidar_tile.jpg
    :width: 98%
 
-**Download** LIDAR file `20090429_42122c8225_ld_p23.laz <http://www.csc.noaa.gov/htdata/lidar1_z/geoid12a/data/1171/20090429_42122c8225_ld_p23.laz>`_ now.
+
 
 .. note::
 
@@ -163,8 +167,8 @@ The PDAL "`pipeline file <http://www.pointcloud.org/pipeline.html>`_" is an XML 
 
 Here is our pipeline file. Note that we are using "EPSG:4326" for the spatial referencing system, since that's what we learned from the metadata. 
 
-* Our reader is a `drivers.las.reader`,
-* our writer is a `drivers.pgpointcloud.writer`, and
+* Our reader is a `readers.las`,
+* our writer is a `writers.pgpointcloud`, and
 * in between, we are applying a `filters.chipper`.
 * For more information about PDAL pipeline filters and reader/writers see the `stage reference documentation <http://www.pointcloud.org/stages/index.html>`_.
 
@@ -174,18 +178,16 @@ Here is our pipeline file. Note that we are using "EPSG:4326" for the spatial re
 
   <?xml version="1.0" encoding="utf-8"?>
   <Pipeline version="1.0">
-    <Writer type="drivers.pgpointcloud.writer">
-      <Option name="connection">dbname=lidar user=postgres</Option>
+    <Writer type="writers.pgpointcloud">
+      <Option name="connection">host='localhost' dbname=lidar user=postgres</Option>
       <Option name="table">medford</Option>
       <Option name="srid">4326</Option>
       <Filter type="filters.chipper">
         <Option name="capacity">400</Option>
-        <Filter type="filters.cache">
-          <Reader type="drivers.las.reader">
+          <Reader type="readers.las">
             <Option name="filename">20090429_42122c8225_ld_p23.laz</Option>
             <Option name="spatialreference">EPSG:4326</Option>
           </Reader>
-        </Filter>
       </Filter>
     </Writer>
   </Pipeline>
@@ -204,6 +206,10 @@ When the process is complete, there will be a new table in the database::
   Indexes:
       "medford_pkey" PRIMARY KEY, btree (id)
 
+.. code-block:: sql
+
+  \d+ medford
+
 Note the type of the `pa` column in the database, it is `pcpatch(1)`. The `pcpatch` part refers to the data type, which is a collection of point cloud points, grouped into a square area, a "patch" of data. The `(1)` part refers to the "format" of the points inside the patch: how many dimensions each point has, and what those dimensions are. You can see the format entry by reading the `pointcloud_formats` table.
 
 .. code-block:: sql
@@ -220,7 +226,7 @@ We can use our knowledge of the schema, and the functions in the `pointcloud` ex
   SELECT Sum(PC_NumPoints(pa)) 
   FROM medford;
  
-  -- What is the average elevation of the first patch? (439.384)
+  -- What is the average elevation of the first patch? (439.366)
   WITH pts AS (
     SELECT PC_Explode(pa) AS pt
     FROM medford LIMIT 1
@@ -235,14 +241,15 @@ We can use our knowledge of the schema, and the functions in the `pointcloud` ex
   SELECT PC_AsText(pt) FROM pts LIMIT 1;
   -- {
   --  "pcid":1,
-  --  "pt":[-122.887,42.3125,439.384,42,1,1,1,0,1,6,181,343,419629,1.14073e+07,0]
+  --  "pt":[45,1,1,0,0,2,6,181,343,419629,-122.887,42.3125,439.366]
+
   -- }
   
   -- How many patches do we have? (28547)
   SELECT Count(*) 
   FROM medford;
 
-  -- What is the min/max elevation in our cloud? (421.20/467.413)
+  -- What is the min/max elevation in our cloud? (421.21/467.41)
   SELECT 
     Min(PC_PatchMin(pa, 'z')) AS min,
     Max(PC_PatchMax(pa, 'z')) AS max
@@ -259,7 +266,7 @@ We can use our knowledge of the schema, and the functions in the `pointcloud` ex
     FROM medford LIMIT 1
   )
   SELECT ST_AsEWKT(pt::geometry) FROM pts LIMIT 1;
-  -- SRID=4326;POINT(-122.8874601 42.3125002 439.384)
+  -- SRID=4326;POINT(-122.8874718 42.3125002 439.366)
 
 There is more information about the `pointcloud` database extension and the SQL functions available in it the `extension documentation page <https://github.com/pramsey/pointcloud/blob/master/README.md>`_.
 
@@ -283,8 +290,8 @@ GeoServer can only map PostGIS geometries, so we'll use the cast from `pcpatch` 
 
 Now set up a GeoServer layer that reads from the view
 
-* `Log in to GeoServer <http://suite.opengeo.org/docs/4.0/geoserver/webadmin/basics.html#welcome-page>`_.
-* `Add a new PostGIS store <http://suite.opengeo.org/docs/4.0/geoserver/webadmin/data/stores.html#adding-a-store>`_.
+* `Log in to GeoServer <http://suite.opengeo.org/opengeo-docs/geoserver/gettingstarted/web-admin-quickstart/index.html>`_.
+* `Add a new PostGIS store <http://suite.opengeo.org/opengeo-docs/geoserver/data/database/postgis.html>`_.
 
   .. image:: ./img/gs_newstore.jpg
   
@@ -929,7 +936,7 @@ We've successfully carried out analysis and visualization of small LIDAR data se
 
 
 
-.. _OpenGeo Suite 4: http://suite.opengeo.org/opengeo-docs/installation/index.html
+.. _OpenGeo Suite 4: http://suite.opengeo.org/opengeo-docs/intro/installation/index.html
 .. _LIDAR: http://en.wikipedia.org/wiki/Lidar
 .. _PDAL: http://pointcloud.org
 
