@@ -3,76 +3,38 @@
 Installation
 ============
 
-In this section we will install OpenGeo Suite on your workshop machine.
+In this section we will setup the workshop virtual machine on your device.
 
-GeoServer, being a Java application, typically requires a Java Runtime Environment (JRE) as well as an application server in order to function. Both of these are included with OpenGeo Suite, so separate installation is not needed here.
+GeoServer, being a Java application, typically requires a Java Runtime Environment (JRE) as well as an application server in order to function. The latest GeoServer version (2.10) requires a Java 8 JRE. Both of these are included with the virtual machine, so separate installation is not needed.
 
-Installing OpenGeo Suite
-------------------------
+Setup
+=====
 
-The OpenGeo Suite executable file is located in the workshop package in the :file:`software` folder.
+This training course will use a virtual machine (VM) which has been already configured with GeoServer, eliminating the need to install it directly on your machine.
 
-.. note:: During this installation, please keep all of the default settings.
+#. Install the latest version of VirtualBox (5.1.8) from the installer provided in the workshop package. You may keep all defaults during the install.
 
-#. **Double-click** the file :file:`OpenGeoSuite-<version>.exe` to begin the installation.
+#. Double-click the VM image file that you downloaded or copied from the provided USB sticks (:file:`Geoserver_LT2016.ova`). This will import the virtual machine into VirtualBox.
 
-   .. note:: On some systems, you might see a Windows Security warning. We promise the software is safe, so can safely click through this warning.
+ #. Click :guilabel:`Import` to accept the defaults.
 
-#. At the *Welcome* screen, click :guilabel:`Next`.
+ #. You will now see the :guilabel:`Geoserver_LT2016` entry in the list of virtual machines in VirtualBox.
 
-   .. figure:: img/installation_welcome.png
+.. note:: During install on Windows, you may see a warning about your network interfaces. **This is expected.** Your network connections will be *temporarily* disconnected, and automatically reset after installation has completed. So be aware that you don't want to be utilizing your network connection (for example, downloading something) during the installation of VirtualBox.
 
-      OpenGeo Suite installation Welcome screen
-
-#. Read the *License Agreement*, then click :guilabel:`I Agree`.
-
-   .. figure:: img/installation_license.png
-
-      License Agreement
-
-#. Select the *Destination Folder* where you would like to install OpenGeo Suite, and click :guilabel:`Next`.
-
-   .. figure:: img/installation_directory.png
-
-      Destination folder for the installation
-
-#. Select the name and location of the *Start Menu Folder* that will be created for the Suite components, and click :guilabel:`Next`.
-
-   .. figure:: img/installation_startmenu.png
-
-      Start Menu Folder to be created for the installation
-
-#. Choose the components you wish to install.
-
-   .. figure:: img/installation_components.png
-
-      Component selection
-
-#. When you are ready, click :guilabel:`Install` to start the installation.
-
-   .. figure:: img/installation_ready.png
-
-      Ready to install
-
-#. Please wait while the installation proceeds.
-
-   .. figure:: img/installation_install.png
-
-      Installation progress
-
-#. After installation, click :guilabel:`Finish`.
-
-   .. figure:: img/installation_finish.png
-
-      OpenGeo Suite has been installed
 
 Starting and stopping services
 ------------------------------
 
-OpenGeo Suite has been installed and is now running by default. There are two system services related to OpenGeo Suite: GeoServer (Jetty) and PostGIS (PostgreSQL). You can start and stop these services through the Start Menu.
+The VM has been installed and when running GeoServer will be on by default. If GeoServer needs to be restarted, follow these steps:
 
-.. figure:: img/installation_startstop.png
+#. Click the running VM to open the window. 
 
-   Start Menu entries for starting and stopping OpenGeo Suite services
+#. When prompted for :guilabel:`login` use *vagrant* and for :guilabel:`password` use *vagrant* as well.
 
-You can also stop and start these services from the standard Windows Services dialog. There they are known as **OpenGeo Jetty** and **OpenGeo PostgreSQL**.
+#. The following command will start/stop/restart the GeoServer instance:
+
+  .. code-block:: console
+  
+      sudo service geoserver restart
+
