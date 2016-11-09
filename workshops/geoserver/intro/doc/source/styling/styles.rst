@@ -156,29 +156,29 @@ Once the styles are loaded, they are merely stored in GeoServer, but not associa
 
 .. warning:: If a style file has references that are specific to a certain layer (for example, attribute names or geometries), associating that style with another layer may cause errors or unexpected behavior.
 
-#. Navigate to the :guilabel:`Layers` page.
+#. Navigate to the :guilabel:`Styles` page.
 
-   .. figure:: img/styles_layerslink.png
+   .. figure:: img/styles_stylelink.png
 
-      Click to go to the Layers page
+      Click to go to the Styles page
 
-#. Click the :guilabel:`earth:cities` layer to edit its configuration.
+#. Click the :guilabel:`Cities` style to edit its configuration.
 
 #. Click the :guilabel:`Publishing` tab.
 
 #. Scroll down to the :guilabel:`Default style` drop down list. Change the entry to display the :guilabel:`Cities` style. You will see that the legend changes.
 
-   .. figure:: img/styles_selectingnewstyle.png
+   .. figure:: img/styles_setstyle.png
 
-      Associating the layer with a different style
+      Setting a style as default for a layer.
 
-#. Click :guilabel:`Save` to commit the change.
-
-#. Verify the change by going to the layer's :guilabel:`Layer Preview` page. Zoom in the see the behavior change based on zoom level.
+#. Verify the change by going to the :guilabel:`Layer Preview` tab. Zoom in the see the behavior change based on zoom level. You may need to change the previewing layer by clicking the blue text of the layer.
 
    .. figure:: img/styles_viewingnewstyle.png
 
       The cities layer with a different style
+
+#. Click :guilabel:`Submit` to commit the change.
  
 #. Repeat the above steps for the ``earth:countries`` and ``earth:ocean`` layers, associating each with the appropriate uploaded style (``Countries`` and ``Ocean`` respectively). View each result in the Layer Preview.
 
@@ -216,29 +216,28 @@ Below is the entire :file:`ocean.ysld` file. Notice that on **lines 11-13**, you
 
 This means that GeoServer will expect the graphic to be in the same directory as the file itself. So in order for the layer to display properly, we will need to copy that file manually.
 
-#. The :file:`styles` directory of the workshop materials contains a file, :file:`oceantile.png`. We want to copy this file to the GeoServer styles repository, contained in the GeoServer data directory. In OpenGeo Suite for Windows, the easiest way to get to the GeoServer data directory is go to the Start Menu and navigate to :menuselection:`OpenGeo Suite --> Data Directory`.
 
-   .. figure:: img/styles_datadirstartmenu.png
+#. The home directory of the VM contains a file, :file:`oceantile.png`. We want to copy this file to the GeoServer styles repository, contained in the GeoServer data directory. In our VM the data directory which contains the styles is at :file:`/opt/geoserver/data_dir/styles`. 
 
-      Data Directory in the Start Menu
+#. To copy our file to the styles directory type the following in the VM window:
 
-   You can also find the full path to the data directory by clicking :guilabel:`Server Status` on the left side of any GeoServer page.
-
-   .. figure:: img/styles_serverstatus.png
-
-      Server Status page showing location of GeoServer Data Directory
-
-#. Once located, navigate to the GeoServer Data directory.
-
-#. Navigate into the :file:`styles` folder. 
-
-#. Copy the :file:`oceantile.png` file from the workshop materials into the :file:`styles` directory.
-
+    .. code-block:: console
+    
+      cp oceantile.png /opt/geoserver/data_dir/styles
+       
 #. Now back in GeoServer, navigate to the :ref:`geoserver.webadmin.layerpreview` for the ``earth:ocean`` layer. If you copied the file correctly, you should see a ocean-like graphic tiled in the appropriate places now.
 
    .. figure:: img/styles_tiledgraphic.png
 
       The ocean layer with a tiled graphic
+      
+.. note:: The login and password for the VM are both **vagrant**
+
+.. note:: You can also find the full path to the data directory by clicking :guilabel:`Server Status` on the left side of any GeoServer page.
+
+  .. figure:: img/styles_serverstatus.png
+
+     Server Status page showing location of GeoServer Data Directory
 
 Revisiting the layer group
 --------------------------
